@@ -76,7 +76,7 @@ export function AppShell() {
   );
 
   return (
-    <div className="min-h-dvh lg:grid lg:grid-cols-[15rem_1fr]">
+    <div className="min-h-dvh lg:grid lg:grid-cols-[15rem_minmax(0,1fr)] lg:bg-[linear-gradient(to_right,var(--color-surface)_15rem,transparent_15rem)]">
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-sage focus:px-3 focus:py-2 focus:text-night">
         Skip to content
       </a>

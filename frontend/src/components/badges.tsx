@@ -101,7 +101,7 @@ export function ScoreDial({ score, size = 56 }: { score: number | null; size?: n
           strokeDasharray={`${(value / 100) * c} ${c}`}
         />
       </svg>
-      <span className="absolute text-sm font-bold tabular-nums">{score ?? "–"}</span>
+      <span className={clsx("absolute font-bold tabular-nums", size < 48 ? "text-[11px]" : "text-sm")}>{score ?? "–"}</span>
     </div>
   );
 }

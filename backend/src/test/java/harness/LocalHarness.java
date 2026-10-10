@@ -61,8 +61,12 @@ public final class LocalHarness {
         props.put("codesage.frontend-url", "http://localhost:5173");
         props.put("codesage.review.max-files", "40");
         props.put("codesage.rate-limit.enabled", "false");
+        // Placeholder OAuth registration so the sign-in UI renders as configured (the harness logs in via /harness/login).
+        props.put("codesage.github.client-id", System.getenv().getOrDefault("GITHUB_CLIENT_ID", "harness-placeholder"));
+        props.put("codesage.github.client-secret", System.getenv().getOrDefault("GITHUB_CLIENT_SECRET", "harness-placeholder"));
         SpringApplication app = new SpringApplication(CodeSageApplication.class, HarnessConfig.class);
-        app.setDefaultProperties(props);
+        // System properties outrank application.yml defaults.
+        props.forEach((k, v) -> System.setProperty(k, v.toString()));
         app.run(args);
     }
 
@@ -81,9 +85,7 @@ public final class LocalHarness {
         }
 
         @Bean
-        FilterRegistrationBean<OncePerRequestFilter> harnessLogin(UserAccountService accounts,
-                                                                   GitRepositoryRepository repositories,
-                                                                   GitHubClient github) {
+        FilterRegistrationBean<OncePerRequestFilter> harnessLogin(org.springframework.context.ApplicationContext ctx) {
             OncePerRequestFilter filter = new OncePerRequestFilter() {
                 @Override
                 protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
@@ -92,11 +94,14 @@ public final class LocalHarness {
                         chain.doFilter(req, res);
                         return;
                     }
+                    UserAccountService accounts = ctx.getBean(UserAccountService.class);
+                    GitRepositoryRepository repositories = ctx.getBean(GitRepositoryRepository.class);
+                    GitHubClient github = ctx.getBean(GitHubClient.class);
                     String login = req.getParameter("login");
                     long githubId = Long.parseLong(req.getParameter("githubId"));
                     String name = req.getParameter("name");
                     UUID userId = accounts.upsertOnLogin(githubId, login, name, null,
-                            "https://avatars.githubusercontent.com/u/" + githubId, "anonymous", "public data (harness)");
+                            null, "anonymous", "public data (harness)");
                     String[] repos = req.getParameter("repos") == null ? new String[0] : req.getParameter("repos").split(",");
                     for (String fullName : repos) {
                         String[] parts = fullName.split("/");

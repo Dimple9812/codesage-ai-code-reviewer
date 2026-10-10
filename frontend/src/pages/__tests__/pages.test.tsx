@@ -177,6 +177,25 @@ describe("ReviewWorkspace", () => {
     expect(mocked.findings).not.toHaveBeenCalled();
   });
 
+  it("switches from progress to results when polling sees the review finish", async () => {
+    mocked.review
+      .mockResolvedValueOnce(detailFixture({ status: "RUNNING", score: null }))
+      .mockResolvedValue(detailFixture());
+    mocked.reviewStatus
+      .mockResolvedValueOnce({ id: "r1", status: "RUNNING", aiStatus: null, startedAt: null, completedAt: null, errorMessage: null, terminal: false })
+      .mockResolvedValue({ id: "r1", status: "COMPLETED", aiStatus: "COMPLETED", startedAt: null, completedAt: null, errorMessage: null, terminal: true });
+    mocked.findings.mockResolvedValue([findingFixture()]);
+    mocked.reviewFiles.mockResolvedValue([]);
+    mocked.fileContent.mockResolvedValue({ path: "src/UserService.java", language: "java", content: "", commitSha: "abc" });
+    renderWithProviders(<ReviewWorkspace />, route);
+    expect(await screen.findByText(/this page updates automatically/i)).toBeInTheDocument();
+    expect(await screen.findByText("Possible null pointer exception", {}, { timeout: 5000 })).toBeInTheDocument();
+    // Polling stops once the review is terminal (no request storm).
+    const calls = mocked.reviewStatus.mock.calls.length;
+    await new Promise((r) => setTimeout(r, 2500));
+    expect(mocked.reviewStatus.mock.calls.length).toBe(calls);
+  }, 15000);
+
   it("renders findings, filters them and navigates to the source line", async () => {
     mocked.review.mockResolvedValue(detailFixture());
     mocked.reviewStatus.mockResolvedValue({ id: "r1", status: "COMPLETED", aiStatus: "COMPLETED", startedAt: null, completedAt: null, errorMessage: null, terminal: true });

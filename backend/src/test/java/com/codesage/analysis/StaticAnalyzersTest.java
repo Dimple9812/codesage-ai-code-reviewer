@@ -109,6 +109,18 @@ class StaticAnalyzersTest {
     }
 
     @Test
+    void matchesInsideStringLiteralsAreNotTreatedAsCalls() {
+        PatternRulesAnalyzer rules = new PatternRulesAnalyzer(TestProps.defaults());
+        assertThat(rules.analyze(List.of(file("Rules.java", Language.JAVA,
+                "Pattern p = Pattern.compile(\"verify\\\\s*=\\\\s*False|TrustAllCerts\");\n"
+                        + "String doc = \"never call Runtime.getRuntime().exec(cmd + x)\";\n")))).isEmpty();
+        // ...while the real call is still reported
+        assertThat(rules.analyze(List.of(file("client.py", Language.PYTHON, "requests.get(url, verify=False)\n"))))
+                .extracting(FindingCandidate::ruleId).containsExactly("SEC-TLS-001");
+        assertThat(PatternRulesAnalyzer.insideStringLiteral("x = \"a \\\" b\" + eval(", 20)).isFalse();
+    }
+
+    @Test
     void commentsDoNotTriggerCodeRules() {
         PatternRulesAnalyzer rules = new PatternRulesAnalyzer(TestProps.defaults());
         assertThat(rules.analyze(List.of(file("a.js", Language.JAVASCRIPT, "// never use eval(userInput)\nconst x = 1;"))))

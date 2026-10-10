@@ -114,7 +114,7 @@ export default function ReviewWorkspace() {
       ) : (
         <>
           <SummaryPanel detail={d} />
-          <div className="mt-4 grid gap-4 xl:grid-cols-[17rem_minmax(0,1fr)_27rem]">
+          <div className="mt-4 grid grid-cols-[minmax(0,1fr)] gap-4 xl:grid-cols-[minmax(0,1fr)_25rem] 2xl:grid-cols-[16rem_minmax(0,1fr)_26rem]">
             <FileExplorer
               files={files.data}
               loading={files.isLoading}
@@ -124,7 +124,10 @@ export default function ReviewWorkspace() {
                 setFocusLine(null);
               }}
             />
-            <SourcePane reviewId={reviewId} path={activeFile} files={files.data} findings={all} focusLine={focusLine} onSelectLine={(l) => {
+            <SourcePane reviewId={reviewId} path={activeFile} files={files.data} findings={all} focusLine={focusLine} onSelectFile={(p) => {
+                setSelectedFile(p);
+                setFocusLine(null);
+              }} onSelectLine={(l) => {
               const hit = all.find((f) => f.filePath === activeFile && f.startLine && l >= f.startLine && l <= (f.endLine ?? f.startLine));
               if (hit) setSelectedFinding(hit.id);
             }} />
@@ -249,7 +252,7 @@ function FileExplorer({ files, loading, active, onSelect }: { files?: ReviewFile
   const analyzed = (files ?? []).filter((f) => f.analyzed);
   const skipped = (files ?? []).filter((f) => !f.analyzed);
   return (
-    <Panel className="flex max-h-[44rem] flex-col">
+    <Panel className="hidden max-h-[44rem] flex-col 2xl:flex">
       <h2 className="border-b border-line px-4 py-3 text-sm font-semibold">Files ({analyzed.length})</h2>
       {loading ? (
         <LoadingBlock rows={6} label="Loading files" />
@@ -308,6 +311,7 @@ function SourcePane({
   files,
   findings,
   focusLine,
+  onSelectFile,
   onSelectLine,
 }: {
   reviewId: string;
@@ -315,6 +319,7 @@ function SourcePane({
   files?: ReviewFile[];
   findings: Finding[];
   focusLine: number | null;
+  onSelectFile: (path: string) => void;
   onSelectLine: (line: number) => void;
 }) {
   const content = useFileContent(reviewId, path);
@@ -323,7 +328,26 @@ function SourcePane({
   return (
     <Panel className="flex h-[44rem] min-w-0 flex-col overflow-hidden">
       <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-3 text-sm">
-        <span className="truncate font-mono text-xs text-muted">{path ?? "No file selected"}</span>
+        <span className="hidden truncate font-mono text-xs text-muted 2xl:inline">{path ?? "No file selected"}</span>
+        {/* Below 2xl the explorer column is hidden; pick files here instead. */}
+        <label htmlFor="file-picker" className="sr-only">
+          File
+        </label>
+        <select
+          id="file-picker"
+          className={`${inputClass} min-w-0 flex-1 py-1 font-mono text-xs 2xl:hidden`}
+          value={path ?? ""}
+          onChange={(e) => onSelectFile(e.target.value)}
+        >
+          {(files ?? [])
+            .filter((f) => f.analyzed)
+            .map((f) => (
+              <option key={f.path} value={f.path}>
+                {f.path}
+                {f.findingCount ? ` (${f.findingCount})` : ""}
+              </option>
+            ))}
+        </select>
         {changed.size > 0 && <span className="shrink-0 text-xs text-sage">Changed lines marked in the gutter</span>}
       </div>
       <div className="min-h-0 flex-1">

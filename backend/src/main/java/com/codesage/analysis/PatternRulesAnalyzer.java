@@ -35,6 +35,29 @@ public class PatternRulesAnalyzer implements StaticAnalyzer {
 
     record Rule(String id, Set<Language> languages, Pattern pattern, FindingCategory category, Severity severity,
                 String title, String description, String impact, String recommendation, boolean secret) {
+
+        /** Rules whose pattern intentionally inspects string literals (SQL text, config values). */
+        boolean matchesStrings() {
+            return id.startsWith("SEC-SQLI") || id.startsWith("SQL-") || id.startsWith("CFG-");
+        }
+    }
+
+    /** True if position {@code pos} lies inside a "..." or '...' literal (escape-aware, single line). */
+    static boolean insideStringLiteral(String line, int pos) {
+        char quote = 0;
+        for (int i = 0; i < pos && i < line.length(); i++) {
+            char c = line.charAt(i);
+            if (quote != 0) {
+                if (c == '\\') {
+                    i++;
+                } else if (c == quote) {
+                    quote = 0;
+                }
+            } else if (c == '"' || c == '\'' || c == '`') {
+                quote = c;
+            }
+        }
+        return quote != 0;
     }
 
     static final List<Rule> RULES = List.of(
@@ -232,6 +255,11 @@ public class PatternRulesAnalyzer implements StaticAnalyzer {
                     continue;
                 }
                 if ("SEC-SECRET-005".equals(rule.id()) && PLACEHOLDER.matcher(matcher.group()).find()) {
+                    continue;
+                }
+                // API-usage rules describe code, not text: a match that starts inside a string literal
+                // (documentation, test fixtures, rule definitions) is not a call and is skipped.
+                if (!rule.secret() && !rule.matchesStrings() && insideStringLiteral(line, matcher.start())) {
                     continue;
                 }
                 out.add(FindingCandidate.staticFinding("codesage-rules", rule.category(), rule.severity(), rule.title(),

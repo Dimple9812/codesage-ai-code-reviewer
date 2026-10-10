@@ -1,4 +1,5 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 
 import { ApiError } from "./client";
@@ -97,22 +98,28 @@ export const useReviews = (filters: ReviewFilters) =>
 
 export const useReview = (id: string) => useQuery({ queryKey: keys.review(id), queryFn: () => api.review(id) });
 
-/** Polls while a review is queued/running, then refreshes everything that depends on it. */
+/** Polls while a review is queued/running, then refreshes the queries that depend on its result. */
 export function useReviewStatus(id: string) {
   const qc = useQueryClient();
-  return useQuery({
+  const query = useQuery({
     queryKey: keys.reviewStatus(id),
-    queryFn: async () => {
-      const status = await api.reviewStatus(id);
-      const previous = qc.getQueryData<{ terminal: boolean }>(keys.reviewStatus(id));
-      if (status.terminal && previous && !previous.terminal) {
-        qc.invalidateQueries({ queryKey: ["review", id] });
-        qc.invalidateQueries({ queryKey: keys.dashboard });
-      }
-      return status;
-    },
-    refetchInterval: (query) => (query.state.data?.terminal ? false : 2000),
+    queryFn: () => api.reviewStatus(id),
+    refetchInterval: (q) => (q.state.data?.terminal ? false : 2000),
   });
+  const terminal = query.data?.terminal;
+  const previous = useRef<boolean | undefined>(undefined);
+  useEffect(() => {
+    if (terminal && previous.current === false) {
+      // Only dependent queries: invalidating the status query itself here would restart polling.
+      qc.invalidateQueries({ queryKey: keys.review(id), exact: true });
+      qc.invalidateQueries({ queryKey: ["review", id, "findings"] });
+      qc.invalidateQueries({ queryKey: keys.files(id) });
+      qc.invalidateQueries({ queryKey: keys.dashboard });
+      qc.invalidateQueries({ queryKey: ["reviews"] });
+    }
+    previous.current = terminal;
+  }, [terminal, id, qc]);
+  return query;
 }
 
 export function useCancelReview(id: string) {
