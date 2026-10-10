@@ -62,8 +62,8 @@ public final class LocalHarness {
         props.put("codesage.review.max-files", "40");
         props.put("codesage.rate-limit.enabled", "false");
         // Placeholder OAuth registration so the sign-in UI renders as configured (the harness logs in via /harness/login).
-        props.put("codesage.github.client-id", System.getenv().getOrDefault("GITHUB_CLIENT_ID", "harness-placeholder"));
-        props.put("codesage.github.client-secret", System.getenv().getOrDefault("GITHUB_CLIENT_SECRET", "harness-placeholder"));
+        props.put("codesage.github.client-id", System.getenv().getOrDefault("GITHUB_CLIENT_ID", "harness-demo-client"));
+        props.put("codesage.github.client-secret", System.getenv().getOrDefault("GITHUB_CLIENT_SECRET", "harness-demo-client"));
         SpringApplication app = new SpringApplication(CodeSageApplication.class, HarnessConfig.class);
         // System properties outrank application.yml defaults.
         props.forEach((k, v) -> System.setProperty(k, v.toString()));

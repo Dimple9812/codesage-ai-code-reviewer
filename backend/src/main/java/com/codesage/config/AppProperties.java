@@ -39,7 +39,12 @@ public record AppProperties(
             @DefaultValue("20s") Duration timeout) {
 
         public boolean oauthConfigured() {
-            return clientId != null && !clientId.isBlank() && clientSecret != null && !clientSecret.isBlank();
+            return isReal(clientId) && isReal(clientSecret);
+        }
+
+        /** Rejects blanks and the placeholders shipped in .env.example. */
+        private static boolean isReal(String value) {
+            return value != null && !value.isBlank() && !value.startsWith("your-") && !value.contains("placeholder");
         }
 
         public boolean webhookConfigured() {

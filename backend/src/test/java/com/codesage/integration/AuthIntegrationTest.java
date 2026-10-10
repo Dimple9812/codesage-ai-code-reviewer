@@ -114,6 +114,16 @@ class AuthIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
+    void clientRoutesForwardToTheSpaButUnknownMutationsAreDenied() throws Exception {
+        mvc.perform(get("/dashboard"))
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.forwardedUrl("/index.html"));
+        mvc.perform(get("/reviews/123/compare"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.forwardedUrl("/index.html"));
+        mvc.perform(post("/dashboard").with(csrf())).andExpect(status().is4xxClientError());
+    }
+
+    @Test
     void healthEndpointIsPublicButOtherActuatorEndpointsAreNot() throws Exception {
         mvc.perform(get("/actuator/health")).andExpect(status().isOk());
         mvc.perform(get("/actuator/env")).andExpect(status().is4xxClientError());

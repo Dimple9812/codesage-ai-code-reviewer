@@ -417,7 +417,9 @@ A clean static scan does **not** prove that code is secure, and AI findings are 
 
 ## Deployment
 
-Not deployed yet; there is no public URL. To deploy:
+**Free option (Render + Neon):** the root `Dockerfile` builds one image with the UI and API together, and [`render.yaml`](render.yaml) deploys it from GitHub on every push. Step by step: [docs/deployment.md](docs/deployment.md#free-deployment-render--neon-single-container).
+
+General production setup:
 
 1. **Database:** a managed PostgreSQL 16 (private network only). Flyway migrates on startup. For zero-downtime upgrades, run migrations as a separate step with `spring.flyway.enabled=true` on a single instance first.
 2. **Backend:** build `backend/Dockerfile` and supply the environment variables from your platform's secret manager (never bake them into images). Set `SESSION_COOKIE_SECURE=true`, `TOKEN_ENCRYPTION_KEY`, `APP_PUBLIC_URL=https://your-domain` and `APP_CORS_ALLOWED_ORIGINS=https://your-domain`.

@@ -2,6 +2,18 @@
 
 The application has **not** been deployed by the authors. These are tested build artifacts plus instructions.
 
+## Free deployment: Render + Neon (single container)
+
+The root `Dockerfile` bundles the React build into the Spring Boot app, so one free Render web service serves both the UI and the API (same origin, no CORS, no nginx). `render.yaml` describes the service.
+
+1. **Neon** (free Postgres): create a project and copy the connection details. Use
+   `DATABASE_URL=jdbc:postgresql://<host>/<db>?sslmode=require` plus `DATABASE_USERNAME` / `DATABASE_PASSWORD`.
+2. **Render**: New → Blueprint → select this GitHub repository. Render reads `render.yaml`, builds the root `Dockerfile` and deploys on every push to `main`.
+3. Fill in the env vars Render asks for. `APP_PUBLIC_URL`, `APP_FRONTEND_URL` and `APP_CORS_ALLOWED_ORIGINS` are all `https://<service>.onrender.com`.
+4. Create a **separate GitHub OAuth App** for production with callback `https://<service>.onrender.com/login/oauth2/code/github`.
+
+Free-tier caveats: the instance sleeps after 15 minutes without traffic, and the first request takes about a minute to wake it. Sessions are in memory, so users sign in again after a restart. There are 750 instance hours per month.
+
 ## Images
 ```bash
 docker build -t codesage-backend ./backend

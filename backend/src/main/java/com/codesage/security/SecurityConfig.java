@@ -53,6 +53,8 @@ public class SecurityConfig {
                 .requestMatchers("/actuator/health", "/actuator/health/**", "/actuator/info").permitAll()
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 .requestMatchers("/api/**").authenticated()
+                // Single-image deployments serve the SPA from this app: static files and client routes are public.
+                .requestMatchers(HttpMethod.GET, "/**").permitAll()
                 .anyRequest().denyAll())
             .exceptionHandling(ex -> ex
                 // SPA + API: answer 401 instead of redirecting to a login page.
@@ -72,7 +74,7 @@ public class SecurityConfig {
                 .frameOptions(f -> f.deny())
                 .contentSecurityPolicy(csp -> csp.policyDirectives(
                     "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; "
-                    + "img-src 'self' data: https:; frame-ancestors 'none'"))
+                    + "img-src 'self' data: https:; font-src 'self' data:; worker-src 'self' blob:; frame-ancestors 'none'"))
                 .referrerPolicy(r -> r.policy(
                     org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.SAME_ORIGIN)))
             .addFilterAfter(rateLimitFilter, org.springframework.security.web.access.intercept.AuthorizationFilter.class);
