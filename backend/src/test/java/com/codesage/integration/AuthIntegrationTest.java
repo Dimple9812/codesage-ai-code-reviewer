@@ -54,7 +54,7 @@ class AuthIntegrationTest extends IntegrationTestBase {
     void loginStartRedirectsToGitHubWithStateParameter() throws Exception {
         mvc.perform(get("/api/auth/github"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(header().string("Location", "/oauth2/authorization/github"));
+                .andExpect(header().string("Location", "http://localhost:3000/oauth2/authorization/github"));
         MvcResult result = mvc.perform(get("/oauth2/authorization/github"))
                 .andExpect(status().is3xxRedirection())
                 .andReturn();

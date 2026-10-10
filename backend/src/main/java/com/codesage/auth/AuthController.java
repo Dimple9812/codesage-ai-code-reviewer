@@ -61,7 +61,10 @@ public class AuthController {
             response.sendRedirect(props.frontendUrl() + "/login?error=github_not_configured");
             return;
         }
-        response.sendRedirect("/oauth2/authorization/" + SecurityConfig.REGISTRATION_ID);
+        // Absolute URL on the public origin, so the redirect never depends on proxy Host headers.
+        String base = props.publicUrl().endsWith("/") ? props.publicUrl().substring(0, props.publicUrl().length() - 1)
+                : props.publicUrl();
+        response.sendRedirect(base + "/oauth2/authorization/" + SecurityConfig.REGISTRATION_ID);
     }
 
     @Operation(summary = "Current user profile and GitHub connection status (never returns tokens)")
