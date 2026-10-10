@@ -1,0 +1,35 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:codesage-${random.uuid};MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH;DB_CLOSE_DELAY=-1
+    username: sa
+    password: ""
+  data:
+    redis:
+      repositories:
+        enabled: false
+  cache:
+    type: none
+
+codesage:
+  token-encryption-key: test-encryption-key-not-for-production
+  public-url: http://localhost:3000
+  frontend-url: http://localhost:3000
+  github:
+    client-id: test-client-id
+    client-secret: test-client-secret
+    webhook-secret: test-webhook-secret
+  ai:
+    provider: anthropic
+    api-key: test-ai-key
+    model: test-model
+    max-retries: 0
+  review:
+    worker-threads: 2
+    poll-interval-ms: 500
+  rate-limit:
+    enabled: false
+
+logging:
+  level:
+    com.codesage: INFO
+    org.springframework.security: WARN
