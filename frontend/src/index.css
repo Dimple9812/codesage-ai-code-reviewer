@@ -1,0 +1,116 @@
+@import "tailwindcss";
+
+/* CodeSage design tokens: blue-slate night with a eucalyptus ("sage") accent. */
+@theme {
+  --font-sans: "Schibsted Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --color-night: #0e1621;
+  --color-surface: #15202c;
+  --color-raised: #1b2836;
+  --color-line: #273647;
+  --color-line-strong: #36495e;
+  --color-ink: #e4ebf3;
+  --color-muted: #93a4b8;
+  --color-faint: #66788c;
+
+  --color-sage: #8cc7a8;
+  --color-sage-strong: #a8dcc0;
+  --color-sage-deep: #2e5543;
+  --color-pollen: #e7cf62;
+
+  --color-sev-critical: #f27474;
+  --color-sev-high: #f0a35e;
+  --color-sev-medium: #e7cf62;
+  --color-sev-low: #7fb6e8;
+  --color-sev-info: #9aa8b8;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  background: var(--color-night);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-sage);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+::selection {
+  background: var(--color-sage-deep);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--color-raised) 0%, var(--color-line) 50%, var(--color-raised) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* Rendered markdown from findings (react-markdown, raw HTML disabled). */
+.prose-finding p {
+  margin: 0 0 0.5rem;
+}
+.prose-finding code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  background: var(--color-raised);
+  padding: 0.05rem 0.3rem;
+  border-radius: 4px;
+}
+.prose-finding pre {
+  background: var(--color-night);
+  border: 1px solid var(--color-line);
+  padding: 0.75rem;
+  border-radius: 6px;
+  overflow-x: auto;
+}
+.prose-finding ul {
+  list-style: disc;
+  padding-left: 1.25rem;
+}
+.prose-finding a {
+  color: var(--color-sage);
+  text-decoration: underline;
+}
+
+/* Monaco decorations for findings and PR changed lines */
+.cs-finding-critical { background: rgb(242 116 116 / 0.12); }
+.cs-finding-high { background: rgb(240 163 94 / 0.11); }
+.cs-finding-medium { background: rgb(231 207 98 / 0.09); }
+.cs-finding-low { background: rgb(127 182 232 / 0.09); }
+.cs-finding-info { background: rgb(154 168 184 / 0.07); }
+.cs-glyph-critical, .cs-glyph-high, .cs-glyph-medium, .cs-glyph-low, .cs-glyph-info {
+  border-radius: 9999px; margin-left: 6px; width: 8px !important; height: 8px !important; margin-top: 6px;
+}
+.cs-glyph-critical { background: var(--color-sev-critical); }
+.cs-glyph-high { background: var(--color-sev-high); }
+.cs-glyph-medium { background: var(--color-sev-medium); }
+.cs-glyph-low { background: var(--color-sev-low); }
+.cs-glyph-info { background: var(--color-sev-info); }
+.cs-changed-line { border-left: 3px solid var(--color-sage); margin-left: 3px; }
